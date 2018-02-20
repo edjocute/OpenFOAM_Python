@@ -157,10 +157,12 @@ while currline!='':
 	if "STL start" in currline:
 		currline = iFR.readline()
 		while "STL end" not in currline:
-			dummy = currline.strip().split(" ",1)
+			dummy = currline.strip().replace('\t',' ')
+			dummy = dummy.split(None,1)
 			print(dummy,len(dummy))
 			name = dummy[0]
 			if len(dummy) == 2:
+				assert dummy[1].startswith('(') and dummy[1].endswith(')'),'"'+dummy[1]+'" is not a valid refinement specification for '+name
 				refSurf = dummy[1]
 			else:	
 				refSurf = "(2 3)"
