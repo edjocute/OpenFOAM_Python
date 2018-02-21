@@ -809,7 +809,7 @@ oFW.close()
 
 ## Create the files of the variables
 
-variables = ["p","p_rgh","k","omega","epsilon","T","nut","U"]
+variables = ["p","p_rgh","k","omega","epsilon","T","nut","U","alphat"]
 
 for var in variables:
 	oF = cwd + "/0/" + var
@@ -846,6 +846,9 @@ for var in variables:
 	elif var == "U":	
 		oFW.write("\n\ndimensions\t[0 1 -1 0 0 0 0];")
 		oFW.write("\n\ninternalField\tuniform\t(1 0 0);")
+	elif var == "alphat":	
+		oFW.write("\n\ndimensions\t[0 2 -1 0 0 0 0];")
+		oFW.write("\n\ninternalField\tuniform\t0.1;")
 
 	oFW.write("\n\nboundaryField\n{\n")
 
@@ -853,7 +856,7 @@ for var in variables:
 	for s in s1:
 		oFW.write("\n\t"+s)
 		oFW.write("\n\t{")
-		if var == "p" or var == "p_rgh" or var == "T":
+		if var == "p" or var == "p_rgh" or var == "T" or var == "alphat":
 			oFW.write("\n\t\ttype\tzeroGradient;")
 		elif var == "k" or var == "omega" or var == "epsilon":
 			oFW.write("\n\t\ttype\tfixedValue;")
@@ -880,6 +883,8 @@ for var in variables:
 		oFW.write("\n\t\ttype\tzeroGradient;")
 	elif var == "U":
 		oFW.write("\n\t\ttype\tzeroGradient;")
+	elif var == "alphat":
+		oFW.write("\n\t\ttype\tzeroGradient;")
 	oFW.write("\n\t}")
 	
 	oFW.write("\n\tBottom")
@@ -903,6 +908,10 @@ for var in variables:
 	elif var == "U":
 		oFW.write("\n\t\ttype\tfixedValue;")
 		oFW.write("\n\t\tvalue\tuniform (0 0 0);")
+	elif var == "alphat":
+		oFW.write("\n\t\ttype\talphatJayatillekeWallFunction;")
+		oFW.write("\n\t\tPrt\t0.9;")
+		oFW.write("\n\t\tvalue\tuniform 0;")
 	oFW.write("\n\t}")
 
 	for jj in xrange(0,len(wSTL)):
@@ -927,6 +936,10 @@ for var in variables:
 		elif var == "U":
 			oFW.write("\n\t\ttype\tfixedValue;")
 			oFW.write("\n\t\tvalue\tuniform (0 0 0);")	
+		elif var == "alphat":
+			oFW.write("\n\t\ttype\talphatJayatillekeWallFunction;")
+			oFW.write("\n\t\tPrt\t0.9;")
+			oFW.write("\n\t\tvalue\tuniform 0;")
 		oFW.write("\n\t}")
 
 	oFW.write("\n}")
