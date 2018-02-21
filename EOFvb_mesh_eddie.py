@@ -970,6 +970,13 @@ oFW.write("\n}\n")
 oFW.write("\n\ntransportModel\tNewtonian;")
 oFW.write("\n\nnu\tnu\t[0 2 -1 0 0 0 0]\t1.5E-05;")
 
+oFW.write("\nTRef\tTRef\t[0 0 0 1 0 0 0]\t298.15;")
+oFW.write("\nbeta\tbeta\t[0 0 0 -1 0 0 0]\t0.003354016;")
+oFW.write("\nPr\tPr\t[0 0 0 0 0 0 0]\t0.9;")
+oFW.write("\nPrt\tPrt\t[0 0 0 0 0 0 0]\t0.9;")
+oFW.write("\n\nrhoCp0\t1005;")
+for jj in xrange(0,len(wSTL)):
+	oFW.write("\n"+wSTL[jj]+"_"+wSolid[jj]+".rhoCp0\t1005;")
 oFW.close()
 
 # Acceleration due to gravity g
