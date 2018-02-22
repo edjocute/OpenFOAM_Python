@@ -128,6 +128,36 @@ def nofcells(a,b,s):
     n1=np.rint(n)
     return n1
 
+def grading_output(v1,v2,v3,v4,a,b):
+    #Calculate the extents over which grading has to be performed. 
+    #It is assumed here that there will be three sets of grading in the following order
+    #Coarse to fine; Uniform; Fine to Coarse
+    s1=np.fabs(v1-v2)
+    s2=np.fabs(v3-v2)
+    s3=np.fabs(v4-v3)
+    #print(s1,s2,s3)
+
+    #No. of cells and expansion ratios
+    ncells_1=nofcells(a,b,s1)
+    ncells_2=np.rint(np.divide(s2,b))
+    ncells_3=nofcells(b,a,s3)
+    #print(ncells_1,ncells_2,ncells_3)
+    er_1=np.divide(b,a,dtype=np.float)
+    er_2=np.divide(b,b)
+    er_3=np.divide(a,b,dtype=np.float)
+
+    L=s1+s2+s3
+    #print(L)
+    C=ncells_1+ncells_2+ncells_3
+    #print ncells_1,ncells_2,ncells_3
+    print "The total no. of cells:"   +str(C)
+
+    cf=[s1,ncells_1,er_1]
+    uni=[s2,ncells_2,er_2]
+    fc=[s3,ncells_3,er_3]
+
+    return [cf,uni,fc],C
+
 
 # In[5]:
 
@@ -248,49 +278,75 @@ iFR.close()
 
 gmin_xy=([gXMin,gYMin])
 gmax_xy=([gXMax,gYMax])
-min_xy=np.rint(gmin_xy)
-max_xy=np.rint(gmax_xy)
-diff_xy=max_xy-min_xy
+min_xyz=np.rint([gXMin,gYMin,0])
+max_xyz=np.rint([gXMax,gYMax,gZMax])
+diff_xyz=max_xyz-min_xyz
+print "Min and Max vertices of buildings region are:"
+print min_xyz
+print max_xyz
+print "The building region extents are:" +str(diff_xyz)
 
 ## Set up the numbers for blockMeshDict
 
-eps = 1e-3
-
-gXMin = 0 if abs(gXMin) < eps else gXMin
-gYMin = 0 if abs(gYMin) < eps else gYMin
-gZMin = 0 if abs(gZMin) < eps else gZMin
-
+#computational domain size extents that satisfies 17% blockage (for both windward frontal and leeward sides)
+#and domain height is 10 times the max value of z
 #For 17%blockage, c=2.5
 c=2.5
-gXMin = min_xy[0]-diff_xy[0]*c
-gYMin = min_xy[1]-diff_xy[1]*c
+gXMin=min_xyz[0]-diff_xyz[0]*c
+gXMax=max_xyz[0]+diff_xyz[0]*c
+gYMin=min_xyz[1]-diff_xyz[1]*c
+gYMax=max_xyz[1]+diff_xyz[1]*c
+gZMin=min_xyz[2]
+gZMax=8*diff_xyz[2]
 
-gXMax = max_xy[0]+diff_xy[0]*c
-gYMax = max_xy[1]+diff_xy[1]*c
+#Domain lengths
+Lx=gXMax-gXMin
+Ly=gYMax-gYMin
+Lz=gZMax
+avgX = (gXMin + gXMax)/2
+avgY = (gYMin + gYMax)/2
+avgZ = (gZMin + gZMax)/2
+print "The computational domain extents are:"
+print(Lx,Ly,Lz)
 
-#The below line is commented so that minimum height is always set to 0 
-#gZMin = gZMin - 10 if gZMin!=0 else gZMin
-gZMin = 0 + gHeight
-gZMax = np.rint(gZMax * 8 ) + gHeight
+#The min and max of computational domain
+print "Min and Max vertices of comp. domain"
+print (gXMin,gYMin,gZMin)
+print (gXMax,gYMax,gZMax)
 
-rX = gXMax - gXMin
-rY = gYMax - gYMin
-rZ = gZMax - gZMin
+##### Blockmesh grading calculation
 
-avgX = (gXMax + gXMin)/2
-avgY = (gYMax + gYMin)/2
-avgZ = (gZMax + gZMin)/2
+#first and last cell size and distance between last and first cell in horizontal plane
+a=128
+b=2
+#In y-direction
+v1y=gYMin
+v2y=min_xyz[1]
+v3y=max_xyz[1]
+v4y=gYMax
+#In x-direction
+v1x=gXMin
+v2x=min_xyz[0]
+v3x=max_xyz[0]
+v4x=gXMax
+#In z-direction, only one set of grading
+az=1
+bz=64
+dz=gZMax-gZMin
+er=np.divide(bz,az,dtype=np.float)
+nz=nofcells(az,bz,dz)
 
-l0resol = 20
-dX = int(rX/l0resol)
-dY = int(rY/l0resol)
-#dZ = int(rZ/l0resol) #for uniform grading in z direction
+#print "In x-direction:"
+xdirn,nx=grading_output(v1x,v2x,v3x,v4x,a,b)
+#print (xdirn)
 
-#grading goes from 5 m to 20 m
-dzmin=5
-dzmax=20
-er=int(np.divide(dzmax,dzmin,dtype=np.float))
-dZ=int(nofcells(dzmin,dzmax,rZ))
+#print "In y-direction:"
+ydirn,ny=grading_output(v1y,v2y,v3y,v4y,a,b)
+#print (ydirn)
+
+#print "In z-direction:"
+#print "The total no. of cells:" +str(nz)
+#print "Expansion ratio:" +str(er)
 
 oF = cwd + "/constant/polyMesh/blockMeshDict"
 oFW = open(oF,"w")
@@ -311,9 +367,17 @@ oFW.write("\n\t(" + str(gXMax) + "\t" + str(gYMin) + "\t" + str(gZMax) + ")")
 oFW.write("\n\t(" + str(gXMax) + "\t" + str(gYMax) + "\t" + str(gZMax) + ")")
 oFW.write("\n\t(" + str(gXMin) + "\t" + str(gYMax) + "\t" + str(gZMax) + ")")
 oFW.write("\n);")
-oFW.write("\nblocks\n(\n\thex\t(0 1 2 3 4 5 6 7)\t");
+oFW.write("\nblocks\n(\n\thex\t(0 1 2 3 4 5 6 7)");
 #oFW.write("("+str(dX)+" "+str(dY)+" "+str(dZ)+")"+"\tsimpleGrading\t(1 1 1)\n);") #uniform mesh
-oFW.write("("+str(dX)+" "+str(dY)+" "+str(dZ)+")"+"\tsimpleGrading\t(1 1 "+str(er)+")\n);") #graded mesh in z direction
+oFW.write("\t("+str(int(nx))+" "+str(int(ny))+" "+str(int(nz))+")")
+oFW.write("\n\n\tsimpleGrading\n\t(\n\t\t(")
+for dirn in [xdirn,ydirn]:
+	oFW.write("\n\t\t(")
+	for i in xrange(3):
+		oFW.write("\n\t\t\t({0[0]}\t{0[1]}\t{0[2]})".format(dirn[i]))
+	oFW.write("\n\t\t)")
+oFW.write("\n\t\t"+str(er))
+oFW.write("\n\t)\n);")
 oFW.write("\nedges\n(\n);")
 oFW.write("\nboundary\n(")
 oFW.write("\n\tWest\n\t{\n\t\ttype\tpatch;\n\t\tfaces\n\t\t(\n\t\t\t(0 4 7 3)\n\t\t);\n\t}")
@@ -431,7 +495,7 @@ oFW.write("\ncastellatedMeshControls")
 oFW.write("\n{")
 oFW.write("\n\tlocationInMesh\t("+str(avgX)+" "+str(avgY)+" "+str(avgZ)+");")
 oFW.write("\n\tmaxLocalCells\t6000000;")
-oFW.write("\n\tmaxGlobalCells\t20000000;")
+oFW.write("\n\tmaxGlobalCells\t60000000;")
 oFW.write("\n\tminRefinementCells\t50;")
 oFW.write("\n\tnCellsBetweenLevels\t3;")
 oFW.write("\n\tresolveFeatureAngle\t60;")
