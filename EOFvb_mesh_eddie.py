@@ -517,49 +517,51 @@ oFW.write("\n\t{")
 namesSoFar = list()
 for ii in range(0,len(wSTL)):
 	name = wSTL[ii]
-	refSurf = wRefSurf[ii]
+	#refSurf = wRefSurf[ii]
+	refSurf="(0 0)"
 	solid = wSolid[ii]
 	if name not in namesSoFar:
 		if ii!=0:
-			oFW.write("\n\t\t\t}\n\t\t}\n")
+			oFW.write("\n\t\t}\n")
 		oFW.write("\n\t\t"+name)
 		oFW.write("\n\t\t{")
 		oFW.write("\n\t\t\tlevel\t"+refSurf+";")
-		oFW.write("\n\t\t\tregions")
+		#oFW.write("\n\t\t\tregions")
+		#oFW.write("\n\t\t\t{")
+		#oFW.write("\n\t\t\t\t"+name+"_"+solid)
+		#oFW.write("\n\t\t\t\t{")
+		#oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
+		oFW.write("\n\t\t\tpatchInfo")
 		oFW.write("\n\t\t\t{")
-		oFW.write("\n\t\t\t\t"+name+"_"+solid)
-		oFW.write("\n\t\t\t\t{")
-		oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
-		oFW.write("\n\t\t\t\t\tpatchInfo")
-		oFW.write("\n\t\t\t\t\t{")
-		oFW.write("\n\t\t\t\t\t\ttype\twall;")
-		oFW.write("\n\t\t\t\t\t}")
-		oFW.write("\n\t\t\t\t}")
+		oFW.write("\n\t\t\t\ttype\twall;")
+		oFW.write("\n\t\t\t}")
+		#oFW.write("\n\t\t\t\t}")
 	else:
-		oFW.write("\n\t\t\t\t"+name+"_"+solid)
-		oFW.write("\n\t\t\t\t{")
-		oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
-		oFW.write("\n\t\t\t\t\tpatchInfo")
-		oFW.write("\n\t\t\t\t\t{")
-		oFW.write("\n\t\t\t\t\t\ttype\twall;")
-		oFW.write("\n\t\t\t\t\t}")
-		oFW.write("\n\t\t\t\t}")
+		#oFW.write("\n\t\t\t\t"+name+"_"+solid)
+		#oFW.write("\n\t\t\t\t{")
+		#oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
+		oFW.write("\n\t\t\tpatchInfo")
+		oFW.write("\n\t\t\t{")
+		oFW.write("\n\t\t\t\ttype\twall;")
+		oFW.write("\n\t\t\t}")
+		#oFW.write("\n\t\t\t\t}")
 	if ii==len(wSTL)-1:
-		oFW.write("\n\t\t\t}\n\t\t}\n")
+		#oFW.write("\n\t\t\t}\n\t\t}\n")
+		oFW.write("\n\t\t}\n")
 oFW.write("\n\t}")
 
 oFW.write("\n\trefinementRegions")
 oFW.write("\n\t{")
-namesSoFar = list()
-for ii in range(0,len(RefinementList)):
-	parts = RefinementList[ii]
-	name = (parts.split("\t")[0]).split(".stl")[0]
-	mode = parts.split("\t")[1]
-	refVol = parts.split("\t")[2]
-	oFW.write("\n\t\t"+ name + "_Ref\n\t\t{")
-	oFW.write("\n\t\t\tmode\t"+mode+";")
-	oFW.write("\n\t\t\tlevels\t"+refVol+";")
-	oFW.write("\n\t\t}")
+#namesSoFar = list()
+#for ii in range(0,len(RefinementList)):
+#	parts = RefinementList[ii]
+#	name = (parts.split("\t")[0]).split(".stl")[0]
+#	mode = parts.split("\t")[1]
+#	refVol = parts.split("\t")[2]
+#	oFW.write("\n\t\t"+ name + "_Ref\n\t\t{")
+#	oFW.write("\n\t\t\tmode\t"+mode+";")
+#	oFW.write("\n\t\t\tlevels\t"+refVol+";")
+#	oFW.write("\n\t\t}")
 
 oFW.write("\n\t}")
 oFW.write("\n}")
