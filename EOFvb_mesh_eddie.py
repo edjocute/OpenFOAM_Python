@@ -50,6 +50,12 @@
 # 11. Refinement region - min Z is changed to 0
 # 12. Few changes in controlDict, fvSchemes and fvSolution
 
+##Modifications by Eddie (Feb 2018)
+# 1. Introduced graded meshing in x,y,z directions and removed snappy refinements
+# 2. Added 0/alphat, additional transport properties
+# 3. Modified P_rgh to type fixedFluxPressure
+
+
 gHeight=0.0
 
 header = list()
