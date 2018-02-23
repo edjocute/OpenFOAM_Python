@@ -138,25 +138,20 @@ def grading_output(v1,v2,v3,v4,a,b):
     #print(s1,s2,s3)
 
     #No. of cells and expansion ratios
-    ncells_1=nofcells(a,b,s1)
-    ncells_2=np.rint(np.divide(s2,b))
-    ncells_3=nofcells(b,a,s3)
-    #print(ncells_1,ncells_2,ncells_3)
+    ncells=np.zeros(3,dtype='int')
+    ncells[0]=nofcells(a,b,s1)
+    ncells[1]=np.rint(np.divide(s2,b))
+    ncells[2]=nofcells(b,a,s3)
     er_1=np.divide(b,a,dtype=np.float)
     er_2=np.divide(b,b)
     er_3=np.divide(a,b,dtype=np.float)
 
-    L=s1+s2+s3
-    #print(L)
-    C=ncells_1+ncells_2+ncells_3
-    #print ncells_1,ncells_2,ncells_3
-    print "The total no. of cells:"   +str(C)
+    cf=[s1,ncells[0],er_1]
+    uni=[s2,ncells[1],er_2]
+    fc=[s3,ncells[2],er_3]
+    dirn=np.array([cf,uni,fc])
 
-    cf=[s1,ncells_1,er_1]
-    uni=[s2,ncells_2,er_2]
-    fc=[s3,ncells_3,er_3]
-
-    return [cf,uni,fc],C
+    return dirn[ncells>0],ncells.sum()
 
 
 # In[5]:
@@ -187,15 +182,16 @@ while currline!='':
 	if "STL start" in currline:
 		currline = iFR.readline()
 		while "STL end" not in currline:
-			dummy = currline.strip().replace('\t',' ')
-			dummy = dummy.split(None,1)
-			print(dummy,len(dummy))
-			name = dummy[0]
-			if len(dummy) == 2:
-				assert dummy[1].startswith('(') and dummy[1].endswith(')'),'"'+dummy[1]+'" is not a valid refinement specification for '+name
-				refSurf = dummy[1]
-			else:	
-				refSurf = "(2 3)"
+			name = currline.strip().replace('\t',' ')
+			#dummy = dummy.split(None,1)
+			print(name)
+			#name = dummy[0]
+			refSurf = "1"
+			#if len(dummy) == 2:
+				#assert dummy[1].startswith('(') and dummy[1].endswith(')'),'"'+dummy[1]+'" is not a valid refinement specification for '+name
+			#	refSurf = dummy[1]
+			#else:	
+			#	refSurf = "1"
 			STLFileList.append(name + "\t" + refSurf)
 			currline = iFR.readline()
 	elif "Refinement start" in currline:
@@ -211,7 +207,7 @@ while currline!='':
 				refVol = ' '.join(dummy[1:])
 			else:
 				mode = "inside"
-				refVol = "((1.00 3))"
+				refVol = "((1.00 0))"
 			RefinementList.append(name + "\t" + mode + "\t" + refVol)
 			currline = iFR.readline()
 	currline = iFR.readline()
@@ -225,6 +221,9 @@ iFR.close()
 
 gXMin = gYMin = gZMin = 1e10
 gXMax = gYMax = gZMax = -1e10
+
+refXMin = refYMin = refZMin = 1e10
+refXMax = refYMax = refZMax = -1e10
 
 ## Find out the names of the solids in each STL file and the extents and write to MasterList
 
@@ -281,10 +280,11 @@ gmax_xy=([gXMax,gYMax])
 min_xyz=np.rint([gXMin,gYMin,0])
 max_xyz=np.rint([gXMax,gYMax,gZMax])
 diff_xyz=max_xyz-min_xyz
-print "Min and Max vertices of buildings region are:"
+print "Min and Max vertices of STL regions are:"
 print min_xyz
 print max_xyz
-print "The building region extents are:" +str(diff_xyz)
+print "The STL region extents are: " +str(diff_xyz)
+
 
 ## Set up the numbers for blockMeshDict
 
@@ -317,34 +317,18 @@ print (gXMax,gYMax,gZMax)
 ##### Blockmesh grading calculation
 
 #first and last cell size and distance between last and first cell in horizontal plane
-a=128
-b=2
-#In y-direction
-v1y=gYMin
-v2y=min_xyz[1]
-v3y=max_xyz[1]
-v4y=gYMax
-#In x-direction
-v1x=gXMin
-v2x=min_xyz[0]
-v3x=max_xyz[0]
-v4x=gXMax
-#In z-direction, only one set of grading
-az=1
-bz=64
-dz=gZMax-gZMin
-er=np.divide(bz,az,dtype=np.float)
-nz=nofcells(az,bz,dz)
+fine=2 #<------ USER INPUT HERE
+coarse=fine*64
+#Expand boundary by distance d in the horizontal plane 
+d=0
+xdirn,nx=grading_output(gXMin,min_xyz[0]-d,max_xyz[0]+d,gXMax,coarse,fine)
+ydirn,ny=grading_output(gYMin,min_xyz[1]-d,max_xyz[1]+d,gYMax,coarse,fine)
 
-#print "In x-direction:"
-xdirn,nx=grading_output(v1x,v2x,v3x,v4x,a,b)
-#print (xdirn)
-
-#print "In y-direction:"
-ydirn,ny=grading_output(v1y,v2y,v3y,v4y,a,b)
-#print (ydirn)
-
-#print "In z-direction:"
+#In z-direction, use uniform for first fz*gZMax and then graded after
+finez=1
+coarsez=64
+fz = 0.02
+zdirn,nz=grading_output(0,0,np.rint(fz*gZMax),gZMax,coarsez,finez)
 #print "The total no. of cells:" +str(nz)
 #print "Expansion ratio:" +str(er)
 
@@ -370,13 +354,12 @@ oFW.write("\n);")
 oFW.write("\nblocks\n(\n\thex\t(0 1 2 3 4 5 6 7)");
 #oFW.write("("+str(dX)+" "+str(dY)+" "+str(dZ)+")"+"\tsimpleGrading\t(1 1 1)\n);") #uniform mesh
 oFW.write("\t("+str(int(nx))+" "+str(int(ny))+" "+str(int(nz))+")")
-oFW.write("\n\n\tsimpleGrading\n\t(\n\t\t(")
-for dirn in [xdirn,ydirn]:
-	oFW.write("\n\t\t(")
-	for i in xrange(3):
-		oFW.write("\n\t\t\t({0[0]}\t{0[1]}\t{0[2]})".format(dirn[i]))
-	oFW.write("\n\t\t)")
-oFW.write("\n\t\t"+str(er))
+oFW.write("\n\n\tsimpleGrading\n\t(")
+for dirn in [xdirn,ydirn,zdirn]:
+   oFW.write("\n\t\t(")
+   for i in xrange(len(dirn)):
+      oFW.write("\n\t\t\t({0[0]}\t{0[1]}\t{0[2]})".format(dirn[i]))
+   oFW.write("\n\t\t)")
 oFW.write("\n\t)\n);")
 oFW.write("\nedges\n(\n);")
 oFW.write("\nboundary\n(")
