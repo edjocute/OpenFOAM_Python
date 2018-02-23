@@ -270,7 +270,7 @@ for ii in range(0,len(STLFileList)):
 		currline = iFR.readline()
 	iFR.close()
 	for qq in range(0,len(solidNames)):
-		oFW.write(name+"\t"+refSurf+"\t"+solidNames[qq]+"\t"+str(localMinBounds)+"\t"+str(localMaxBounds)+"\n")
+		oFW.write(name+"\t"+"\t"+solidNames[qq]+"\t"+str(localMinBounds)+"\t"+str(localMaxBounds)+"\n")
 
 oFW.close()
 iFR.close()
@@ -901,7 +901,7 @@ for var in variables:
 
 	oFW.write("\n\nboundaryField\n{\n")
 
-	s1 = ["West","East","North","Top"]
+	s1 = ["West","East","North"]
 	for s in s1:
 		oFW.write("\n\t"+s)
 		oFW.write("\n\t{")
@@ -917,7 +917,7 @@ for var in variables:
 			oFW.write("\n\t\ttype\tfixedValue;")
 			oFW.write("\n\t\tvalue\tuniform (1 0 0);")	
 		oFW.write("\n\t}")
-	
+
 	oFW.write("\n\tSouth")
 	oFW.write("\n\t{")
 	if var == "p" or var == "p_rgh":
@@ -935,11 +935,32 @@ for var in variables:
 	elif var == "alphat":
 		oFW.write("\n\t\ttype\tzeroGradient;")
 	oFW.write("\n\t}")
+
+	oFW.write("\n\tTop")
+	oFW.write("\n\t{")
+	if var == "p" or var == "T" or var == "alphat":
+		oFW.write("\n\t\ttype\tzeroGradient;")
+	elif var == "p_rgh":
+		oFW.write("\n\t\ttype\tfixedFluxPressure;")
+		oFW.write("\n\t\tvalue\tinternalField;")
+	elif var == "k" or var == "omega" or var == "epsilon":
+		oFW.write("\n\t\ttype\tfixedValue;")
+		oFW.write("\n\t\tvalue\tuniform 0.1;")
+	elif var == "nut":
+		oFW.write("\n\t\ttype\tcalculated;")
+		oFW.write("\n\t\tvalue\tuniform 0;")
+	elif var == "U":
+		oFW.write("\n\t\ttype\tfixedValue;")
+		oFW.write("\n\t\tvalue\tuniform (1 0 0);")	
+	oFW.write("\n\t}")
 	
 	oFW.write("\n\tBottom")
 	oFW.write("\n\t{")
-	if var == "p" or var == "p_rgh":
+	if var == "p":
 		oFW.write("\n\t\ttype\tzeroGradient;")
+	elif var == "p_rgh":
+		oFW.write("\n\t\ttype\tfixedFluxPressure;")
+		oFW.write("\n\t\tvalue\tinternalField;")
 	elif var == "k":
 		oFW.write("\n\t\ttype\tkqRWallFunction;")
 		oFW.write("\n\t\tvalue\tuniform 0.1;")
@@ -968,8 +989,11 @@ for var in variables:
 		solid = wSolid[jj]
 		oFW.write("\n\t"+name+"_"+solid)
 		oFW.write("\n\t{")
-		if var == "p" or var == "p_rgh" or var == "T":
+		if var == "p" or var == "T":
 			oFW.write("\n\t\ttype\tzeroGradient;")
+		elif var == "p_rgh":
+			oFW.write("\n\t\ttype\tfixedFluxPressure;")
+			oFW.write("\n\t\tvalue\tinternalField;")
 		elif var == "k":
 			oFW.write("\n\t\ttype\tkqRWallFunction;")
 			oFW.write("\n\t\tvalue\tuniform 0.1;") 
