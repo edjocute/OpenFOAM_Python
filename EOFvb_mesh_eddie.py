@@ -1085,28 +1085,26 @@ oFW.close()
 
 # In[ ]:
 
-
-##Temporarily comment these lines to prevent files from being moved:
 ##Move STL files to constant/triSurface
-#oF = cwd + "/"
-#src = os.listdir(oF )
-#dst = cwd + "/constant/triSurface/"
-#for files in src:
-#	if files.endswith('.stl'):
-#		shutil.move(os.path.join(oF,files), os.path.join(dst,files))
+oF = cwd + "/"
+src = os.listdir(oF )
+dst = cwd + "/constant/triSurface/"
+for files in src:
+	if files.endswith('.stl'):
+		shutil.move(os.path.join(oF,files), os.path.join(dst,files))
 
 
 # In[ ]:
 
-#os.mkdir("Misc")
-#os.rename("Input.VSGR","Misc/Input.VSGR")
-#os.rename("MasterSTLList","Misc/MasterSTLList")
+os.mkdir("Misc")
+os.rename("Input.VSGR","Misc/Input.VSGR")
+os.rename("MasterSTLList","Misc/MasterSTLList")
 
-#try:
-#	os.mknod("case.foam")
-#except:
-#	oFW = open(cwd + "/case.foam","w")
-#	oFW.close()
+try:
+	os.mknod("case.foam")
+except:
+	oFW = open(cwd + "/case.foam","w")
+	oFW.close()
 
 
 # In[ ]:
