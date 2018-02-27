@@ -433,21 +433,20 @@ for ii in range(0,len(wSTL)):
 	maxBd = wMaxBd[ii]
 	if name not in namesSoFar:
 		if ii!=0:
-			oFW.write("\n\t\t}\n\t}\n");
+			#oFW.write("\n\t\t}\n\t}\n");
+			oFW.write("\n\t}\n");
 		namesSoFar.append(name)
 		oFW.write("\n\t"+ name + ".stl\n\t{")
 		oFW.write("\n\t\ttype\ttriSurfaceMesh;")
-		oFW.write("\n\t\tname\t"+name+";")
-		oFW.write("\n\t\tregions\n\t\t{")
-		oFW.write("\n\t\t\t"+solid)
-		oFW.write("\n\t\t\t{")
-		oFW.write("\n\t\t\t\tname\t"+name+"_"+solid+";"+"\n\t\t\t}")
+		oFW.write("\n\t\tname\t"+name+"_"+solid+";")
 	else:
 		oFW.write("\n\t\t\t"+solid)
 		oFW.write("\n\t\t\t{")
-		oFW.write("\n\t\t\t\tname\t"+name+"_"+solid+";"+"\n\t\t\t}")
+		#oFW.write("\n\t\t\t\tname\t"+name+"_"+solid+";"+"\n\t\t\t}")
+		oFW.write("\n\t\t\t\tname\t"+name+"_"+solid+";")
 	if ii==len(wSTL)-1:
-		oFW.write("\n\t\t}\n\t}\n");
+		#oFW.write("\n\t\t}\n\t}\n");
+		oFW.write("\n\t}\n");
 
 print(wSTL)
 
@@ -512,14 +511,16 @@ for ii in range(0,len(wSTL)):
 	if name not in namesSoFar:
 		if ii!=0:
 			oFW.write("\n\t\t}\n")
-		oFW.write("\n\t\t"+name)
+		#oFW.write("\n\t\t"+name)
+                oFW.write("\n\t\t"+name+"_"+solid) #BB
 		oFW.write("\n\t\t{")
-		oFW.write("\n\t\t\tlevel\t"+refSurf+";")
+		#oFW.write("\n\t\t\tlevel\t"+refSurf+";")
 		#oFW.write("\n\t\t\tregions")
 		#oFW.write("\n\t\t\t{")
 		#oFW.write("\n\t\t\t\t"+name+"_"+solid)
 		#oFW.write("\n\t\t\t\t{")
 		#oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
+		oFW.write("\n\t\t\tlevel\t"+refSurf+";")#BB
 		oFW.write("\n\t\t\tpatchInfo")
 		oFW.write("\n\t\t\t{")
 		oFW.write("\n\t\t\t\ttype\twall;")
@@ -529,6 +530,7 @@ for ii in range(0,len(wSTL)):
 		#oFW.write("\n\t\t\t\t"+name+"_"+solid)
 		#oFW.write("\n\t\t\t\t{")
 		#oFW.write("\n\t\t\t\t\tlevel\t"+refSurf+";")
+		oFW.write("\n\t\t\tlevel\t"+refSurf+";") #BB
 		oFW.write("\n\t\t\tpatchInfo")
 		oFW.write("\n\t\t\t{")
 		oFW.write("\n\t\t\t\ttype\twall;")
@@ -654,7 +656,7 @@ for f in files:
 		oFW.write("\ndeltaT\t1;")
 		oFW.write("\nwriteControl\ttimeStep;")
 		oFW.write("\nwriteInterval\t500;")
-		oFW.write("\npurgeWrite\t0;")
+		oFW.write("\npurgeWrite\t1;")
 		oFW.write("\nwriteFormat\tbinary;")
 		oFW.write("\nwritePrecision\t6;")
 		oFW.write("\nwriteCompression\tcompressed;")
@@ -709,14 +711,15 @@ for f in files:
 
 		oFW.write("\n\nlaplacianSchemes")
 		oFW.write("\n{")
-		oFW.write("\n\tdefault\tnone;")
-		oFW.write("\n\tlaplacian(nuEff,U)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian(kappaEff,T)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian(DkEff,k)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian(DepsilonEff,epsilon)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian(DomegaEff,omega)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian((1|A(U)),p)\tGauss linear limited 0.5;")
-		oFW.write("\n\tlaplacian((1|A(U)),p_rgh)\tGauss linear limited 0.5;")
+		oFW.write("\n\tdefault\tGauss linear limited 1;") #BB -commented below lines
+		#oFW.write("\n\tdefault\tnone;")
+		#oFW.write("\n\tlaplacian(nuEff,U)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian(kappaEff,T)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian(DkEff,k)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian(DepsilonEff,epsilon)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian(DomegaEff,omega)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian((1|A(U)),p)\tGauss linear limited 0.5;")
+		#oFW.write("\n\tlaplacian((1|A(U)),p_rgh)\tGauss linear limited 0.5;")
 		oFW.write("\n}")
 
 		oFW.write("\n\ninterpolationSchemes")
@@ -726,7 +729,8 @@ for f in files:
 
 		oFW.write("\n\nsnGradSchemes")
 		oFW.write("\n{")
-		oFW.write("\n\tdefault\tlimited 0.5;")
+		oFW.write("\n\tdefault\tlimited 1;") #BB -commented below line
+                #oFW.write("\n\tdefault\tlimited 0.5;")
 		oFW.write("\n}")
 
 		oFW.write("\n\nfluxRequired")
@@ -743,18 +747,18 @@ for f in files:
 		oFW.write("\n\t{")
 		oFW.write("\n\t\tsolver\tGAMG;")
 		oFW.write("\n\t\tsmoother\tGaussSeidel;")
-		oFW.write("\n\t\ttolerance\t1e-08;")
-		oFW.write("\n\t\trelTol\t0.05;")
-		oFW.write("\n\t\tcacheAgglomeration\toff;")
-		oFW.write("\n\t\tnCellsInCoarsestLevel\t20;")
+		oFW.write("\n\t\ttolerance\t1e-05;")
+		oFW.write("\n\t\trelTol\t0.01;")
+		oFW.write("\n\t\tnPreSweeps\t0;")
+		oFW.write("\n\t\tnPostSweeps\t2;")
+		oFW.write("\n\t\tcacheAgglomeration\ton;")
+		oFW.write("\n\t\tnCellsInCoarsestLevel\t10;")
 		oFW.write("\n\t\tagglomerator\tfaceAreaPair;")
 		oFW.write("\n\t\tmergeLevels\t1;")
 		oFW.write("\n\t}")
 
 		oFW.write('\n"k|omega|epsilon|U|T"')
 		oFW.write("\n\t{")
-		oFW.write("\n\t\t//solver\tPBiCG;")
-		oFW.write("\n\t\t//preconditioner\tDILU;")
 		oFW.write("\n\t\tsolver\tsmoothSolver;")
 		oFW.write("\n\t\tsmoother\tGaussSeidel;")
 		oFW.write("\n\t\ttolerance\t1e-05;")
@@ -764,7 +768,7 @@ for f in files:
 
 		oFW.write("\nSIMPLE")
 		oFW.write("\n{")
-		oFW.write("\n\tnNonOrthogonalCorrectors\t1;")
+		oFW.write("\n\tnNonOrthogonalCorrectors\t0;")
 		oFW.write("\n\tpRefCell\t0;")
 		oFW.write("\n\tpRefValue\t0;")
 		oFW.write("\n\tresidualControl")
@@ -813,7 +817,8 @@ for f in files:
         	oFW.write("\n\t\t\t\tplaneType\t\t\tpointAndNormal;")
         	oFW.write("\n\t\t\t\tpointAndNormalDict")
         	oFW.write("\n\t\t\t\t{")
-        	oFW.write("\n\t\t\t\t\tbasePoint\t\t\t("+str(avgX)+" "+str(avgY)+" "+str(avgZ)+");")
+        	#oFW.write("\n\t\t\t\t\tbasePoint\t\t\t("+str(avgX)+" "+str(avgY)+" "+str(avgZ)+");")
+                oFW.write("\n\t\t\t\t\tbasePoint\t\t\t("+str(avgX)+" "+str(avgY)+" "+str(20)+");") #BB
         	oFW.write("\n\t\t\t\t\tnormalVector\t\t\t(0 0 1);")
         	oFW.write("\n\t\t\t\t\t}")
         	oFW.write("\n\t\t\t\t\tinterpolate\t\t\ttrue;")
@@ -894,7 +899,7 @@ for var in variables:
 		oFW.write("\n\ninternalField\tuniform\t0.1;")
 	elif var == "T":
 		oFW.write("\n\ndimensions\t[0 0 0 1 0 0 0];")
-		oFW.write("\n\ninternalField\tuniform\t298.15;")
+		oFW.write("\n\ninternalField\tuniform\t303.15;")
 	elif var == "nut":	
 		oFW.write("\n\ndimensions\t[0 2 -1 0 0 0 0];")
 		oFW.write("\n\ninternalField\tuniform\t0;")
@@ -980,7 +985,9 @@ for var in variables:
 		oFW.write("\n\t\ttype\tnutkWallFunction;")
 		oFW.write("\n\t\tvalue\tuniform 0;")
 	elif var=="T":
-		oFW.write("\n\t\ttype\tzeroGradient;")
+		#oFW.write("\n\t\ttype\tzeroGradient;")
+		oFW.write("\n\t\ttype\tfixedValue;") #BB
+		oFW.write("\n\t\tvalue\tuniform 0;") #BB
 	elif var == "U":
 		oFW.write("\n\t\ttype\tfixedValue;")
 		oFW.write("\n\t\tvalue\tuniform (0 0 0);")
@@ -995,7 +1002,8 @@ for var in variables:
 		solid = wSolid[jj]
 		oFW.write("\n\t"+name+"_"+solid)
 		oFW.write("\n\t{")
-		if var == "p" or var == "T":
+		#if var == "p" or var == "T":
+		if var == "p": #BB
 			oFW.write("\n\t\ttype\tzeroGradient;")
 		elif var == "p_rgh":
 			oFW.write("\n\t\ttype\tfixedFluxPressure;")
@@ -1019,6 +1027,13 @@ for var in variables:
 			oFW.write("\n\t\ttype\talphatJayatillekeWallFunction;")
 			oFW.write("\n\t\tPrt\t0.9;")
 			oFW.write("\n\t\tvalue\tuniform 0;")
+ 	        elif var == "T": #BB
+			oFW.write("\n\t\ttype\ttimeVaryingHeatFlux;")
+			oFW.write("\n\t\tgradient\tuniform 0;") 
+			oFW.write("\n\t\theatSource\tflux;")
+			oFW.write("\n\t\tq\tuniform 20;")
+			oFW.write("\n\t\talphaEff\talphaEff;")
+			oFW.write("\n\t\tvalue\t$internalField;")
 		oFW.write("\n\t}")
 
 	oFW.write("\n}")
@@ -1062,8 +1077,8 @@ oFW.write("\n}\n")
 oFW.write("\n\ntransportModel\tNewtonian;")
 oFW.write("\n\nnu\tnu\t[0 2 -1 0 0 0 0]\t1.5E-05;")
 
-oFW.write("\nTRef\tTRef\t[0 0 0 1 0 0 0]\t298.15;")
-oFW.write("\nbeta\tbeta\t[0 0 0 -1 0 0 0]\t0.003354016;")
+oFW.write("\nTRef\tTRef\t[0 0 0 1 0 0 0]\t303.15;")
+oFW.write("\nbeta\tbeta\t[0 0 0 -1 0 0 0]\t0.003298697;")
 oFW.write("\nPr\tPr\t[0 0 0 0 0 0 0]\t0.9;")
 oFW.write("\nPrt\tPrt\t[0 0 0 0 0 0 0]\t0.9;")
 oFW.write("\n\nrhoCp0\t1005;")
