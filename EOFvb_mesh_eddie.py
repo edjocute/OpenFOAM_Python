@@ -648,6 +648,7 @@ for f in files:
 	oFW.write("\n}\n")
 
 	if f == "controlDict":
+		oFW.write("\nlibs\t(\"libuserheatfluxof24x.so\");")
 		oFW.write("\napplication\tsimpleFoam;")
 		oFW.write("\nstartFrom\tlatestTime;")
 		oFW.write("\nstartTime\t0;")
