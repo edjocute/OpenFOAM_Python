@@ -870,7 +870,7 @@ oFW.close()
 
 ## Create the files of the variables
 
-variables = ["p","p_rgh","k","omega","epsilon","T","nut","U","alphat"]
+variables = ["p","p_rgh","k","epsilon","T","nut","U","alphat"]
 
 for var in variables:
 	oF = cwd + "/0/" + var
