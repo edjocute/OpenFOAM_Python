@@ -162,9 +162,26 @@ def grading_output(v1,v2,v3,v4,a,b):
 
 # In[5]:
 
-import shutil
+import shutil, sys
 import os as os
 cwd = os.getcwd().replace("\\","/")
+
+if os.path.isdir("0"):
+    raise Exception("Directory 0 already exists")
+
+
+import getopt,sys
+verbose = False
+try:
+    opts, args = getopt.getopt(sys.argv[1:], 'v')
+except getopt.GetoptError as err:
+    print err
+    sys.exit()
+
+for o, a in opts:
+    if o == "-v":
+	verbose = True
+
 
 iF = cwd+"/Input.VSGR"
 iFR = open(iF,"r")
@@ -178,12 +195,12 @@ while currline!='':
 	if "STL start" in currline:
 		currline = iFR.readline()
 		while "STL end" not in currline:
-			name = currline.strip().replace('\t',' ')
+			name = currline.strip()
 			#dummy = dummy.split(None,1)
 			assert len(name.split()) == 1,\
 			    "\nError in Input.VSGR: \n " + name +\
 			    "\n Input.VSGR should only specifiy stl files with no arguments"
-			print(name)
+			print "Processing "+name
 			#name = dummy[0]
 			refSurf = "1"
 			#if len(dummy) == 2:
@@ -196,6 +213,7 @@ while currline!='':
 	elif "Refinement start" in currline:
 		currline = iFR.readline()
 		while "Refinement end" not in currline:
+			print "Note: Snappy refinement is not in use, refinement will be ignored."
 			dummy = currline.strip().split()
 			name = dummy[0]
 			if len(dummy) == 6:
@@ -207,7 +225,7 @@ while currline!='':
 			else:
 				mode = "inside"
 				refVol = "((1.00 0))"
-			RefinementList.append(name + "\t" + mode + "\t" + refVol)
+			#RefinementList.append(name + "\t" + mode + "\t" + refVol)
 			currline = iFR.readline()
 	currline = iFR.readline()
 iFR.close()
@@ -286,10 +304,11 @@ gmax_xy=([gXMax,gYMax])
 min_xyz=np.rint([gXMin,gYMin,0])
 max_xyz=np.rint([gXMax,gYMax,gZMax])
 diff_xyz=max_xyz-min_xyz
-print "Min and Max vertices of STL regions are:"
-print min_xyz
-print max_xyz
-print "The STL region extents are: " +str(diff_xyz)
+if verbose:
+    print "Min and Max vertices of STL regions are:"
+    print min_xyz
+    print max_xyz
+    print "The STL region extents are: " +str(diff_xyz)
 
 
 ## Set up the numbers for blockMeshDict
@@ -326,12 +345,13 @@ avgX = (gXMin + gXMax)/2
 avgY = (gYMin + gYMax)/2
 
 #Print some info about computation domain
-print "The computational domain extents are:"
-print(Lx,Ly,Lz)
-print(L,L,Lz)
-print "Min and Max vertices of comp. domain"
-print (gXMin,gYMin,gZMin)
-print (gXMax,gYMax,gZMax)
+if verbose:
+    print "The computational domain extents are:"
+    print(Lx,Ly,Lz)
+    print(L,L,Lz)
+    print "Min and Max vertices of comp. domain"
+    print (gXMin,gYMin,gZMin)
+    print (gXMax,gYMax,gZMax)
 
 ##### Blockmesh grading calculation
 
@@ -348,15 +368,14 @@ finez=1
 coarsez=64
 fz = 0.02
 zdirn,nz=grading_output(0,0,np.rint(fz*gZMax),gZMax,coarsez,finez)
-#print "The total no. of cells:" +str(nz)
-#print "Expansion ratio:" +str(er)
+if verbose:
+    print "The total no. of cells: ",nx*ny*nz
 
 oF = cwd + "/constant/polyMesh/blockMeshDict"
 oFW = open(oF,"w")
 
 for ii in range(0,len(header)):
 	oFW.write(header[ii])
-
 for ii in range(0,len(blockMesh)):
 	oFW.write(blockMesh[ii])
 
@@ -839,8 +858,6 @@ for f in files:
         	oFW.write("\n\t\t\t\t}")
         	oFW.write("\n\t\t\t);")
         	oFW.write("\n\t\t}")
-    
-	
 	oFW.close()
 
 
@@ -1130,7 +1147,6 @@ for files in src:
 
 
 # In[ ]:
-
 os.mkdir("Misc")
 os.rename("Input.VSGR","Misc/Input.VSGR")
 os.rename("MasterSTLList","Misc/MasterSTLList")
@@ -1140,9 +1156,3 @@ try:
 except:
 	oFW = open(cwd + "/case.foam","w")
 	oFW.close()
-
-
-# In[ ]:
-
-
-
