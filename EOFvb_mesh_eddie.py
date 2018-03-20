@@ -166,30 +166,23 @@ import shutil
 import os as os
 cwd = os.getcwd().replace("\\","/")
 
-os.mkdir("0")
-os.mkdir("constant")
-os.mkdir("constant/polyMesh")
-os.mkdir("constant/triSurface")
-os.mkdir("system")
-
 iF = cwd+"/Input.VSGR"
 iFR = open(iF,"r")
 currline = iFR.readline()
-
 STLFileList = list()
 RefinementList = list()
 
-
 # In[6]:
-
 ## Find out the names of the STL files and refinement regions and the levels of refinement
-
 while currline!='':
 	if "STL start" in currline:
 		currline = iFR.readline()
 		while "STL end" not in currline:
 			name = currline.strip().replace('\t',' ')
 			#dummy = dummy.split(None,1)
+			assert len(name.split()) == 1,\
+			    "\nError in Input.VSGR: \n " + name +\
+			    "\n Input.VSGR should only specifiy stl files with no arguments"
 			print(name)
 			#name = dummy[0]
 			refSurf = "1"
@@ -217,14 +210,10 @@ while currline!='':
 			RefinementList.append(name + "\t" + mode + "\t" + refVol)
 			currline = iFR.readline()
 	currline = iFR.readline()
-
 iFR.close()
 
-
 # In[7]:
-
 ## Declare variables for the global maximum and minimum coordinates
-
 gXMin = gYMin = gZMin = 1e10
 gXMax = gYMax = gZMax = -1e10
 
@@ -232,7 +221,6 @@ refXMin = refYMin = refZMin = 1e10
 refXMax = refYMax = refZMax = -1e10
 
 ## Find out the names of the solids in each STL file and the extents and write to MasterList
-
 oF = cwd + "/MasterSTLList"
 oFW = open(oF,"w")
 
@@ -250,7 +238,13 @@ for ii in range(0,len(STLFileList)):
 		if ("solid" in currline) and ("endsolid" not in currline):
 			xMin = yMin = zMin = 1e10
 			xMax = yMax = zMax = -1e10
-			solidNames.append(currline.strip().split()[1])
+			currline = currline.strip().split()
+			try: 
+			    solidNames.append(currline[1])
+			except:
+			    os.remove(oF)
+			    raise Exception("Error in " + name + \
+			    "\nFirst line of stl must be:\n solid <name>")
 			currline = iFR.readline()
 			while "endsolid" not in currline:		
 				if "vertex" in currline:
@@ -277,9 +271,15 @@ for ii in range(0,len(STLFileList)):
 	iFR.close()
 	for qq in range(0,len(solidNames)):
 		oFW.write(name+"\t"+"\t"+solidNames[qq]+"\t"+str(localMinBounds)+"\t"+str(localMaxBounds)+"\n")
-
 oFW.close()
 iFR.close()
+
+#Now create directories
+os.mkdir("0")
+os.mkdir("constant")
+os.mkdir("constant/polyMesh")
+os.mkdir("constant/triSurface")
+os.mkdir("system")
 
 gmin_xy=([gXMin,gYMin])
 gmax_xy=([gXMax,gYMax])
