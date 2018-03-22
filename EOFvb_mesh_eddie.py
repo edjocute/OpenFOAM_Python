@@ -328,27 +328,21 @@ c=2.5
 gZMin=min_xyz[2]
 gZMax=8*diff_xyz[2]
 Lz=gZMax
-avgZ = (gZMin + gZMax)/2
+avgZ = (gZMin + gZMax)/2.
 
 #Square domain in xy directions
-centerXY = np.rint([(gXMin + gXMax)/2,(gYMin + gYMax)/2])
-Lx=(max_xyz[0]-min_xyz[0])*(2*c+1)
-Ly=(max_xyz[1]-min_xyz[1])*(2*c+1)
-if Lx > Ly:  L = Lx
-else: L = Ly
-L2 = np.rint(L/2.)
-gXMax = centerXY[0]+L2
-gXMin = centerXY[0]-L2
-gYMax = centerXY[1]+L2
-gYMin = centerXY[1]-L2
-avgX = (gXMin + gXMax)/2
-avgY = (gYMin + gYMax)/2
+centerXY = (max_xyz+min_xyz)[:2]/2.
+L = diff_xyz[:2].max()
+L = np.rint(L*(c+0.5))
+gXMax,gYMax = centerXY+L
+gXMin,gYMin = centerXY-L
+avgX,avgY  = centerXY
 
 #Print some info about computation domain
 if verbose:
     print "The computational domain extents are:"
-    print(Lx,Ly,Lz)
-    print(L,L,Lz)
+    #print (diff_xyz[0],diff_xyz[1],Lz)
+    print (2*L,2*L,Lz)
     print "Min and Max vertices of comp. domain"
     print (gXMin,gYMin,gZMin)
     print (gXMax,gYMax,gZMax)
