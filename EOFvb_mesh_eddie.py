@@ -659,7 +659,7 @@ oFW.close()
 
 ## Create controlDict, decomposeParDict, fvSchemes, fvSolution, meshQualityDict and cuttingPlane
 
-files = ["controlDict","decomposeParDict","fvSchemes","fvSolution","meshQualityDict","cuttingPlane"]
+files = ["controlDict","decomposeParDict","fvSchemes","fvSolution","meshQualityDict","cuttingPlane","topoSetDict"]
 
 for f in files:
 	oF = cwd + "/system/" + f
@@ -852,6 +852,21 @@ for f in files:
         	oFW.write("\n\t\t\t\t}")
         	oFW.write("\n\t\t\t);")
         	oFW.write("\n\t\t}")
+	elif f == "topoSetDict":
+		oFW.write("\nactions")
+		oFW.write("\n(")
+		oFW.write("\n\t{")
+		oFW.write("\n\t\tname\tanalysis_region;")
+		oFW.write("\n\t\ttype\tcellSet;")
+		oFW.write("\n\t\taction\tnew;")
+		oFW.write("\n\t\tsource\tboxToCell;")
+		oFW.write("\n\t\tsourceInfo")
+		oFW.write("\n\t\t{")
+		oFW.write("\n\t\t\tbox ("+str(min_xyz[0])+" "+str(min_xyz[1])+" "+str(min_xyz[2])+") ("\
+					 +str(max_xyz[0])+" "+str(max_xyz[1])+" "+str(max_xyz[2])+");")
+		oFW.write("\n\t\t}")
+		oFW.write("\n\t}")
+		oFW.write("\n);")
 	oFW.close()
 
 
@@ -1128,6 +1143,92 @@ oFW.write("\n\nvalue\t(0 0 -9.81);")
 
 oFW.close()
 
+# Scripts for running OpenFOAM
+oF = cwd + "/RunSimpleFoam"
+oFW = open(oF,"w")
+
+oFW.write("#!/bin/sh")
+oFW.write("\n\n# Source tutorial run functions")
+oFW.write("\n. $WM_PROJECT_DIR/bin/tools/RunFunctions")
+
+oFW.write("\n\n#Updates 0 folder with appropriate boundaries")
+oFW.write("\necho \"Updating boundary patches\"")
+oFW.write("\nrunApplication changeDictionary")
+oFW.write("\n#changeDictionary -dict system/modChangeDictionaryDict > log.changedict")
+
+oFW.write("\n\nrm log.decomposePar")
+
+oFW.write("\n\necho \"Enter the no. of processors to be decomposed to:\"")
+oFW.write("\nread nproc")
+
+oFW.write("\n\nawk -v x=\"$nproc\" '$1 ~ /numberOfSubdomains$/ {$2 = x\";\"}1' system/decomposeParDict > system/tmp")
+oFW.write("\nmv system/tmp system/decomposeParDict")
+
+oFW.write("\n\n# Decompose")
+oFW.write("\necho \"Decomposing in to $nproc processors\"")
+oFW.write("\nrunApplication decomposePar")
+
+oFW.write("\n\n#RenumberMesh")
+oFW.write("\necho \"Renumbering mesh\"")
+oFW.write("\nmpirun -np $nproc renumberMesh -overwrite -parallel > log.reno")
+
+oFW.write("\n\n#Perform CFD")
+oFW.write("\necho \"CFD run\"")
+oFW.write("\nmpirun -np $nproc simpleFoam -parallel > log &")
+
+oFW.write("\n\n#Other useful functions")
+oFW.write("\n#topoSet -dict system/topoSetDict -latestTime > log.topo.build 2>&1 &")
+oFW.write("\n#foamToVTK -latestTime -cellSet 'analysis_region' > log.fvtk.cellset 2>&1 &")
+
+oFW.close()
+
+oF = cwd + "/RunSnappy"
+oFW = open(oF,"w")
+
+oFW.write("#!/bin/sh")
+oFW.write("\n\n# Source tutorial run functions")
+oFW.write("\n. $WM_PROJECT_DIR/bin/tools/RunFunctions")
+
+oFW.write("\n\n#m4 constant/polyMesh/blockMeshDict.m4 > constant/polyMesh/blockMeshDict")
+
+oFW.write("\n\n#Block mesh")
+oFW.write("\necho \"Execute blockmesh\"")
+oFW.write("\nrunApplication blockMesh")
+
+oFW.write("\n\n#Extract surface features")
+oFW.write("\n#runApplication surfaceFeatureExtract > log.SFE")
+
+oFW.write("\n\necho \"Enter the no. of processors to be decomposed to:\"")
+oFW.write("\nread nproc")
+
+oFW.write("\n\nawk -v x=\"$nproc\" '$1 ~ /numberOfSubdomains$/ {$2 = x\";\"}1' system/decomposeParDict > system/tmp")
+oFW.write("\nmv system/tmp system/decomposeParDict")
+
+oFW.write("\n\n#The 0 folder is not required for meshing. Reconstruction of mesh takes longer time if '0' is present in processor folders")
+oFW.write("\nmv 0 0.org")
+
+oFW.write("\n\n# Decompose")
+oFW.write("\necho \"Decomposing in to $nproc processors\"")
+oFW.write("\nrunApplication decomposePar")
+
+oFW.write("\n\n#Perform snappyHexMesh")
+oFW.write("\necho \"Snapping mesh\"")
+oFW.write("\nmpirun -np $nproc snappyHexMesh -overwrite -parallel > log.snappymesh")
+
+oFW.write("\n\n#Check Mesh")
+oFW.write("\necho \"Check mesh\"")
+oFW.write("\nmpirun -np $nproc checkMesh -constant -parallel > log.checkmesh")
+
+oFW.write("\n\n#Mesh Reconstruction")
+oFW.write("\necho \"Reconstruct mesh\"")
+oFW.write("\nrunApplication reconstructParMesh -constant")
+
+oFW.write("\n\n#Delete processor folders")
+oFW.write("\necho \"Deleting Processors\"")
+oFW.write("\nrm -rf proc*")
+
+oFW.write("\n\nmv 0.org 0")
+oFW.close()
 
 # In[ ]:
 
